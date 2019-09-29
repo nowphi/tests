@@ -1,0 +1,70 @@
+import java.awt.Graphics2D;
+import java.awt.image.BufferedImage;
+import java.io.File;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+
+import javax.imageio.ImageIO;
+
+import org.apache.pdfbox.pdmodel.PDDocument;
+import org.apache.pdfbox.pdmodel.PDPage;
+
+public class Test {
+	public static void main(String[] args) {
+		
+		ArrayList<BufferedImage> images = new ArrayList<BufferedImage> ();
+		
+		try {
+			String sourceDir = "resources/test.pdf";
+			String destinationDir = "resources/";
+			File sourceFile = new File(sourceDir);
+			File destinationFile = new File(destinationDir);
+			if (!destinationFile.exists()) {
+				destinationFile.mkdir();
+				System.out.println("Folder Created -> " + destinationFile.getAbsolutePath());
+			}
+			if (sourceFile.exists()) {
+				PDDocument document = PDDocument.load(sourceDir);
+				@SuppressWarnings("unchecked")
+				List<PDPage> list = document.getDocumentCatalog().getAllPages();
+	
+				for (PDPage page : list) {
+					BufferedImage image = page.convertToImage();
+				
+					images.add(image);
+										
+					image = new BufferedImage(10, 10, BufferedImage.TYPE_INT_RGB);
+					
+					images.add(image );
+			
+				}
+				document.close();
+				System.out.println("Image saved at -> " + destinationFile.getAbsolutePath());
+			} else {
+				System.err.println(sourceFile.getName() + " File does not exist");
+			}
+		
+				
+		 int heightTotal = 0;
+	        for(int j = 0; j < images.size(); j++) {
+	            heightTotal += images.get(j).getHeight();
+	        }
+		
+	        int heightCurr = 0;
+	        BufferedImage concatImage = new BufferedImage(images.get(0).getWidth(), heightTotal, BufferedImage.TYPE_INT_RGB);
+	        Graphics2D g2d = concatImage.createGraphics();
+	        for(int j = 0; j < images.size(); j++) {
+	            g2d.drawImage(images.get(j), 0, heightCurr, null);
+	            heightCurr += images.get(j).getHeight();
+	        }
+	        g2d.dispose();
+	        
+	      
+				ImageIO.write(concatImage, "png", new File("resources/concat.png"));
+	        } catch (Exception e) {
+				e.printStackTrace();
+			}
+		}
+	
+}
