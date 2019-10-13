@@ -1,0 +1,51 @@
+	/*
+	public static BufferedImage resize(BufferedImage img, int newW, int newH) { 
+		java.awt.Image tmp = img.getScaledInstance(newW, newH, java.awt.Image.SCALE_SMOOTH);
+	    BufferedImage dimg = new BufferedImage(newW, newH, BufferedImage.TYPE_INT_ARGB);
+	    
+	    Graphics2D g2d = dimg.createGraphics();
+	    g2d.drawImage(tmp, 0, 0, null);
+	    g2d.dispose();
+
+	    return dimg;
+	}  
+	*/
+	
+	
+	
+	public static void toPDF() {
+		  try{
+		        //Read the Tiff File
+		        RandomAccessFileOrArray myTiffFile=new RandomAccessFileOrArray("resources/test2.tiff");
+		        //Find number of images in Tiff file
+		        int numberOfPages=TiffImage.getNumberOfPages(myTiffFile);
+		        System.out.println("Number of Images in Tiff File" + numberOfPages);
+		        Document TifftoPDF=new Document(PageSize.A4);
+		        PdfWriter.getInstance(TifftoPDF, new FileOutputStream("resources/tiff3Pdf.pdf"));
+		        TifftoPDF.open();
+		        //Run a for loop to extract images from Tiff file
+		        //into a Image object and add to PDF recursively
+		        for(int i=1;i<=numberOfPages;i++){
+		            Image tempImage=TiffImage.getTiffImage(myTiffFile, i);
+		          // tempImage.setAbsolutePosition(0, 0);
+		           
+		            int indentation = 0;
+		            float w = TifftoPDF.getPageSize().getWidth() ;
+		            float lm = TifftoPDF.leftMargin();
+		            float rm = TifftoPDF.rightMargin();
+		            float scaler = ((w - lm - rm - indentation) / tempImage.getWidth()) * 100;
+
+		            tempImage.scalePercent(scaler);
+		          
+		          //  tempImage.scaleToFit(PageSize.A4.getWidth(), PageSize.A4.getHeight());
+		            //tempImage.setBackgroundColor(Color.WHITE);
+		            TifftoPDF.newPage();
+		            TifftoPDF.add(tempImage);
+		        }
+		        TifftoPDF.close();
+		        System.out.println("Tiff to PDF Conversion in Java Completed" );
+		    }
+		    catch (Exception i1){
+		        i1.printStackTrace();
+		    }      
+ }
