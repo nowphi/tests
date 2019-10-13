@@ -1,0 +1,124 @@
+package image;
+
+import java.awt.image.BufferedImage;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+
+import javax.imageio.ImageIO;
+import javax.imageio.ImageReader;
+import javax.imageio.stream.ImageInputStream;
+
+import com.lowagie.text.Document;
+import com.lowagie.text.DocumentException;
+import com.lowagie.text.Image;
+import com.lowagie.text.PageSize;
+import com.lowagie.text.pdf.PdfWriter;
+import com.lowagie.text.pdf.RandomAccessFileOrArray;
+import com.lowagie.text.pdf.codec.TiffImage;
+
+public abstract class test {
+	
+	public static byte[] toPDF(List<BufferedImage> list) throws DocumentException, IOException 
+	{
+		Document TifftoPDF=new Document(PageSize.A4);
+		ByteArrayOutputStream bos = new ByteArrayOutputStream();
+		PdfWriter.getInstance(TifftoPDF, bos); //new FileOutputStream("resources/tiff2Pdf.pdf"));
+		TifftoPDF.open();
+
+		for(BufferedImage bufImg : list) 
+		{
+			Image image = Image.getInstance(bufImg , null);
+			image.setAbsolutePosition(0, 0);
+			image.scaleToFit(PageSize.A4.getWidth(), PageSize.A4.getHeight());
+			TifftoPDF.newPage();
+		    TifftoPDF.add(image);	            
+		 }
+		
+		 TifftoPDF.close();
+		 bos.close();
+		
+		 return  bos.toByteArray();
+	}
+		
+	public static void main(String[] args) {
+	
+		/*
+		for (String format: ImageIO.getReaderFormatNames()) {
+			  System.out.println(format);
+			}
+		*/
+		
+		try {
+						
+			File file = new File("resources/test.tif");
+			FileInputStream fis =  new FileInputStream(file) ;
+			
+			byte []buf = new byte[fis.available()];
+			fis.read(buf);
+			fis.close();
+		
+			try {
+				
+				FileOutputStream fos = new FileOutputStream("resources/tiff2Pdf.pdf");
+				fos.write( toPDF(getImagesFromFile( buf ))  );
+				fos.close();
+				
+			} catch (DocumentException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		
+			//throw new IOException();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
+
+	public static List<BufferedImage> getImagesFromFile(byte[] buf) throws IOException
+	{
+		List<BufferedImage> list = new ArrayList<BufferedImage> ();
+		
+		ByteArrayInputStream bStream = new ByteArrayInputStream( buf );
+		
+		ImageInputStream is = ImageIO.createImageInputStream( bStream );
+		
+		if (is == null || is.length() == 0){
+			throw new IOException("Image not readable.");
+		}
+
+		Iterator<ImageReader> iterator = ImageIO.getImageReaders(is);
+		  
+		if (iterator == null || !iterator.hasNext()) 
+		{
+			throw new IOException("Image file format not supported by ImageIO.");
+		} 
+		else
+		{
+			ImageReader reader = (ImageReader) iterator.next();
+			iterator = null;
+			reader.setInput(is);
+			  
+			int numPage  = reader.getNumImages(true);
+	
+			for(int i = 0; i <numPage;i++)	
+			{
+				BufferedImage img = reader.read(i);
+				list.add(img);
+			}
+		}
+		
+		is.close();
+		bStream.close();
+		
+		return list;
+	}
+}
