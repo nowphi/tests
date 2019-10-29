@@ -1,0 +1,91 @@
+package test2;
+
+import java.util.ArrayList;
+import java.util.List;
+
+public class ListValidator<T>
+{
+	List<T> list1;
+	List<List<T> > input = new ArrayList<List<T>>();
+	
+	public  List<T> validate() 
+	{
+		List<T> output = new ArrayList<>();
+		List<ListThread<T>> threads = new ArrayList<ListThread<T>>(); 
+		
+		for(List<T> list : input) 
+		{
+			ListThread<T> t =new ListThread<T>(list1, list);
+			t.start();
+			threads.add( t );
+		}
+		
+		for(ListThread<T> join : threads) 
+		{
+			try 
+			{
+				join.join();
+				output.addAll(join.getList3());
+			} 
+			catch (InterruptedException e) 
+			{
+				e.printStackTrace();
+			}
+		}
+		
+		return output;
+	}
+		
+	public ListValidator(List<T> list1, List<T> list2, int threadcount) 
+	{	
+		this.list1 = list1;
+		
+		int listSize = list2.size() / threadcount;
+
+		for(int i = 0; i< threadcount; i++) 
+		{
+			List<T> list = list2.subList(i * listSize , ((i+1) * listSize) - 1);
+			
+			input.add( list );
+		}
+	}
+}
+
+
+package test2;
+
+import java.util.ArrayList;
+import java.util.List;
+
+public class ListThread<T> extends Thread{
+ 
+	List<T> list1 = new ArrayList<T>();
+	List<T> list2 = new ArrayList<T>();
+	List<T> list3 = new ArrayList<T>();
+	
+	public ListThread(List<T> list1 , List<T> list2) 
+	{
+		this.list1 =  list1;
+		this.list2 =  list2;
+	}
+
+	@Override
+	public void run() 
+	{
+		for(T s1 : list1) 
+		{
+			for(T s2 : list2) 
+			{
+				if(s1.equals(s2)) 
+				{
+					list3.add( s1 );
+				}
+			}
+		}		
+	}
+
+	public List<T> getList3() 
+	{
+		return list3;
+	}
+}
